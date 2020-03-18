@@ -95,9 +95,13 @@ end
 
 @inline Base.map(f, shape::NamedTupleShape) = map(f, _accessors(shape))
 
+
 function Base.merge(a::NamedTuple, shape::NamedTupleShape{names}) where {names}
     merge(a, NamedTuple{names}(map(x -> valshape(x), values(shape))))
 end
+
+Base.merge(a::NamedTupleShape) = a
+Base.merge(a::NamedTupleShape, b::NamedTupleShape, cs::NamedTupleShape...) = merge(NamedTupleShape(;a..., b...), cs...)
 
 
 valshape(x::NamedTuple) = NamedTupleShape(map(valshape, x))
@@ -348,7 +352,7 @@ end
 
 
 # Specialize (::NamedTupleShape).(::AbstractVector{<:AbstractVector}):
-Base.copy(instance::VSBroadcasted1{<:NamedTupleShape,AbstractVector{<:AbstractVector{<:Real}}}) =
+Base.copy(instance::VSBroadcasted1{1,<:NamedTupleShape,AbstractVector{<:AbstractVector{<:Real}}}) =
     ShapedAsNTArray(instance.args[1], instance.f)
 
 
@@ -359,7 +363,7 @@ Base.copy(instance::VSBroadcasted1{<:NamedTupleShape,AbstractVector{<:AbstractVe
 
 @inline _bcasted_unshaped(A::ShapedAsNTArray) = _data(A)
 
-Base.copy(instance::VSBroadcasted1{typeof(unshaped),ShapedAsNTArray}) =
+Base.copy(instance::VSBroadcasted1{N,typeof(unshaped),ShapedAsNTArray{T,N}}) where {T,N} =
     _bcasted_unshaped(instance.args[1])
 
 
